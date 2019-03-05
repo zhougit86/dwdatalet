@@ -1,5 +1,6 @@
 package com.yh.dwdatalink.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProcessService {
     Process proc;
+    @Autowired
+    Suicider suicider;
 
     public void setProc(Process p){
         this.proc = p;
@@ -20,6 +23,7 @@ public class ProcessService {
     public void killProc() throws Exception{
         if (this.proc != null && this.proc.isAlive()){
             this.proc.destroy();
+            suicider.suicide(1);
         }
         throw new Exception("no proc running now");
     }

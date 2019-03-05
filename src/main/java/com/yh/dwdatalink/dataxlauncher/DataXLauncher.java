@@ -1,6 +1,7 @@
 package com.yh.dwdatalink.dataxlauncher;
 
 import com.yh.dwdatalink.service.ProcessService;
+import com.yh.dwdatalink.service.Suicider;
 import com.yh.dwdatalink.util.LocalStreamGobbler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,8 @@ public class DataXLauncher implements ApplicationRunner {
 
     @Autowired
     ProcessService procSvc;
+    @Autowired
+    Suicider suicider;
 
     @Override
     public void run(ApplicationArguments applicationArguments) throws Exception {
@@ -59,31 +62,28 @@ public class DataXLauncher implements ApplicationRunner {
 
 //        System.err.println(startString);
 
-        Future<Integer> runFuture = execService.submit(new dataXCaller(startString));
-        System.err.println(runFuture.get());
-    }
+//        Future<Integer> runFuture = execService.submit(new dataXCaller("sleep 10"));
+//        System.err.println(runFuture.get());
 
-    class dataXCaller implements Callable<Integer>{
-        String jobCmdLine;
+        Process p = Runtime.getRuntime().exec(startString);
+        procSvc.setProc(p);
 
-        public dataXCaller(String cmd){
-            this.jobCmdLine = cmd;
+        LocalStreamGobbler outputGobbler = new
+                LocalStreamGobbler(p.getInputStream(), LocalStreamGobbler.stdout);
+
+        LocalStreamGobbler errGobbler = new
+                LocalStreamGobbler(p.getErrorStream(), LocalStreamGobbler.stderr);
+        errGobbler.start();
+        outputGobbler.start();
+
+
+        int exitVal = p.waitFor();
+        while (errGobbler.isAlive() && outputGobbler.isAlive()){
+            Thread.sleep(1*1000L);
         }
 
-        public Integer call() throws Exception {
-            Process p = Runtime.getRuntime().exec(jobCmdLine);
-            procSvc.setProc(p);
 
-            LocalStreamGobbler outputGobbler = new
-                    LocalStreamGobbler(p.getInputStream(), LocalStreamGobbler.stdout);
-
-            LocalStreamGobbler errGobbler = new
-                    LocalStreamGobbler(p.getErrorStream(), LocalStreamGobbler.stderr);
-            errGobbler.start();
-            outputGobbler.start();
-            int exitVal = p.waitFor();
-
-            return exitVal;
-        }
+        suicider.suicide(1);
     }
+
 }
