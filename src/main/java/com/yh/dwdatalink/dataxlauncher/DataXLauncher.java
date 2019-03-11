@@ -1,12 +1,14 @@
 package com.yh.dwdatalink.dataxlauncher;
 
+import com.yh.dwdatalink.configuration.util.ConfigUtil;
+import com.yh.dwdatalink.configuration.util.FileUtil;
 import com.yh.dwdatalink.service.ProcessService;
 import com.yh.dwdatalink.service.Suicider;
 import com.yh.dwdatalink.util.LocalStreamGobbler;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+//import org.apache.http.client.methods.CloseableHttpResponse;
+//import org.apache.http.client.methods.HttpPost;
+//import org.apache.http.impl.client.CloseableHttpClient;
+//import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +42,13 @@ public class DataXLauncher implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments applicationArguments) throws Exception {
+
+        final String jobName = "job.json";
+        final String dataxPath = "/usr/bin/datax";
 //        ExecutorService execService = Executors.newSingleThreadExecutor();
 
-        String theJobDescJson = "{\"job\":{\"setting\":{\"speed\":{\"byte\":10485760},\"errorLimit\":{\"record\":0,\"percentage\":0.02}},\"content\":[{\"reader\":{\"name\":\"streamreader\",\"parameter\":{\"column\":[{\"value\":\"DataX\",\"type\":\"string\"},{\"value\":19990604,\"type\":\"long\"},{\"value\":\"1989-06-05 00:00:00\",\"type\":\"date\"},{\"value\":true,\"type\":\"bool\"},{\"value\":\"test\",\"type\":\"bytes\"}],\"sliceRecordCount\":100000}},\"writer\":{\"name\":\"streamwriter\",\"parameter\":{\"print\":false,\"encoding\":\"UTF-8\"}}}]}}";
-        System.err.println(theJobDescJson);
+//        String theJobDescJson = "{\"job\":{\"setting\":{\"speed\":{\"byte\":10485760},\"errorLimit\":{\"record\":0,\"percentage\":0.02}},\"content\":[{\"reader\":{\"name\":\"streamreader\",\"parameter\":{\"column\":[{\"value\":\"DataX\",\"type\":\"string\"},{\"value\":19990604,\"type\":\"long\"},{\"value\":\"1989-06-05 00:00:00\",\"type\":\"date\"},{\"value\":true,\"type\":\"bool\"},{\"value\":\"test\",\"type\":\"bytes\"}],\"sliceRecordCount\":100000}},\"writer\":{\"name\":\"streamwriter\",\"parameter\":{\"print\":false,\"encoding\":\"UTF-8\"}}}]}}";
+//        System.err.println(theJobDescJson);
 
         InetAddress address = InetAddress.getLocalHost();
         String localIp = address.getHostAddress();
@@ -67,9 +72,18 @@ public class DataXLauncher implements ApplicationRunner {
 
 //        response = client.execute(request);
 
+//        String conf =  ConfigUtil.getJobContent("http://127.0.0.1:8085/config/oxox");
+        String conf =  ConfigUtil.getJobContent(registryUrl + jobName);
 
+        String jobPath = String.format("%s/job/", dataxPath);
+        jobPath+=jobName;
+//        System.err.println(conf);
+        try{
+            FileUtil.writeFile(jobPath,conf);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
-        String dataxPath = "/usr/bin/datax";
 
         String startJobJvmMetrics =
                 "java -server -Xms1g -Xmx1g " +
@@ -85,8 +99,6 @@ public class DataXLauncher implements ApplicationRunner {
                 "-Dlog.file.name=ob_mysql2stream_json ", dataxPath, dataxPath);
         String startJobinputArgs = String.format("-mode standalone -jobid -1" +
                 " -job %s/job/", dataxPath);
-
-        String jobName = "job.json";
 
         StringBuilder sb = new StringBuilder();
         sb.append(startJobJvmMetrics);
