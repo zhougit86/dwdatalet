@@ -43,7 +43,7 @@ public class DataXLauncher implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments applicationArguments) throws Exception {
 
-        final String jobName = "job.json";
+        final String jobFileName = "job.json";
         final String dataxPath = "/usr/bin/datax";
 //        ExecutorService execService = Executors.newSingleThreadExecutor();
 
@@ -73,10 +73,9 @@ public class DataXLauncher implements ApplicationRunner {
 //        response = client.execute(request);
 
 //        String conf =  ConfigUtil.getJobContent("http://127.0.0.1:8085/config/oxox");
-        String conf =  ConfigUtil.getJobContent(registryUrl + jobName);
+        String conf =  ConfigUtil.getJobContent(currentRegistUrl + currentJobName);
 
-        String jobPath = String.format("%s/job/", dataxPath);
-        jobPath+=jobName;
+        String jobPath = String.format("%s/job/%s", dataxPath,jobFileName);
 //        System.err.println(conf);
         try{
             FileUtil.writeFile(jobPath,conf);
@@ -105,7 +104,7 @@ public class DataXLauncher implements ApplicationRunner {
         sb.append(startJobSystemMetrics);
         sb.append(startJobEntryClass);
         sb.append(startJobinputArgs);
-        sb.append(jobName);
+        sb.append(jobFileName);
         String startString = sb.toString();
 
 //        System.err.println(startString);
