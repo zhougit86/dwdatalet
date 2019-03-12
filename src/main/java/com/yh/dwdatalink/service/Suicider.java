@@ -1,6 +1,7 @@
 package com.yh.dwdatalink.service;
 
 import com.yh.dwdatalink.DwdataletApplication;
+import com.yh.dwdatalink.configuration.util.ZKlient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Suicider {
     private static final Logger logger = LoggerFactory.getLogger(Suicider.class);
+    public static ZKlient client;
 
 
     public void suicide(long seconds){
@@ -33,6 +35,11 @@ public class Suicider {
             catch (InterruptedException ex) {
                 logger.error("the suicide count down got some problem: {}, but will be ignored",
                         ex.getMessage());
+            }
+            try{
+                client.release();
+            }catch (Exception e){
+                logger.info("release error {}",e.getMessage());
             }
             DwdataletApplication.context.close();
         }

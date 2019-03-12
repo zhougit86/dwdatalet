@@ -2,6 +2,7 @@ package com.yh.dwdatalink.dataxlauncher;
 
 import com.yh.dwdatalink.configuration.util.ConfigUtil;
 import com.yh.dwdatalink.configuration.util.FileUtil;
+import com.yh.dwdatalink.configuration.util.ZKlient;
 import com.yh.dwdatalink.service.ProcessService;
 import com.yh.dwdatalink.service.Suicider;
 import com.yh.dwdatalink.util.LocalStreamGobbler;
@@ -19,10 +20,6 @@ import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * Created by zhou1 on 2019/3/5.
@@ -30,8 +27,14 @@ import java.util.concurrent.Future;
 @Component
 @Order(value = 1)
 public class DataXLauncher implements ApplicationRunner {
-    public static final String jobName = "DATAX_JOB";
-    public static final String registryUrl = "DATAX_URL";
+    public static final String podType = "datax";
+
+    public static final String jobNameConst = "DATAX_JOB";
+    public static final String registryUrlConst = "DATAX_URL";
+    public static final String jobGroupConst = "DATAX_GRP";
+
+    final String jobConfigFileName = "job.json";
+    final String dataxPath = "/usr/bin/datax";
 
     private static final Logger logger = LoggerFactory.getLogger(DataXLauncher.class);
 
@@ -43,8 +46,7 @@ public class DataXLauncher implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments applicationArguments) throws Exception {
 
-        final String jobName = "job.json";
-        final String dataxPath = "/usr/bin/datax";
+
 //        ExecutorService execService = Executors.newSingleThreadExecutor();
 
 //        String theJobDescJson = "{\"job\":{\"setting\":{\"speed\":{\"byte\":10485760},\"errorLimit\":{\"record\":0,\"percentage\":0.02}},\"content\":[{\"reader\":{\"name\":\"streamreader\",\"parameter\":{\"column\":[{\"value\":\"DataX\",\"type\":\"string\"},{\"value\":19990604,\"type\":\"long\"},{\"value\":\"1989-06-05 00:00:00\",\"type\":\"date\"},{\"value\":true,\"type\":\"bool\"},{\"value\":\"test\",\"type\":\"bytes\"}],\"sliceRecordCount\":100000}},\"writer\":{\"name\":\"streamwriter\",\"parameter\":{\"print\":false,\"encoding\":\"UTF-8\"}}}]}}";
@@ -52,17 +54,36 @@ public class DataXLauncher implements ApplicationRunner {
 
         InetAddress address = InetAddress.getLocalHost();
         String localIp = address.getHostAddress();
-        logger.error(localIp);
+        logger.info("my ip is {}",localIp);
 
 
         Map<String, String> envVar = System.getenv();
-        final String currentJobName = envVar.get(jobName);
-        final String currentRegistUrl = envVar.get(registryUrl);
+        final String currentJobName = envVar.get(jobNameConst);
+        final String currentJobGroup = envVar.get(jobGroupConst);
+        final String currentRegistUrl = envVar.get(registryUrlConst);
         logger.info("get variable from system,the job name:{}, to ip:{}",
                 currentJobName,currentRegistUrl);
-        if(currentJobName ==null || currentRegistUrl==null){
+        if(currentJobName ==null || currentRegistUrl==null
+                || currentJobGroup ==null){
             System.exit(1);
         }
+
+        int retryTimes = 0;
+        while(suicider.client == null && retryTimes<5){
+            try{
+                suicider.client = new ZKlient(podType,currentRegistUrl);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            retryTimes++;
+        }
+
+        if (suicider.client == null){
+            suicider.suicide(1);
+        }
+        String conf =  suicider.client.getNode(currentJobGroup,currentJobName);
+        logger.info("get job config from zk:\n {}",conf);
+
 
 //        CloseableHttpClient client = HttpClients.createDefault();
 //        final String compelteUrl = currentRegistUrl + currentJobName;
@@ -73,10 +94,10 @@ public class DataXLauncher implements ApplicationRunner {
 //        response = client.execute(request);
 
 //        String conf =  ConfigUtil.getJobContent("http://127.0.0.1:8085/config/oxox");
-        String conf =  ConfigUtil.getJobContent(registryUrl + jobName);
+//        String conf =  ConfigUtil.getJobContent(registryUrlConst + jobConfigFileName);
 
         String jobPath = String.format("%s/job/", dataxPath);
-        jobPath+=jobName;
+        jobPath+=jobConfigFileName;
 //        System.err.println(conf);
         try{
             FileUtil.writeFile(jobPath,conf);
@@ -105,7 +126,7 @@ public class DataXLauncher implements ApplicationRunner {
         sb.append(startJobSystemMetrics);
         sb.append(startJobEntryClass);
         sb.append(startJobinputArgs);
-        sb.append(jobName);
+        sb.append(jobConfigFileName);
         String startString = sb.toString();
 
 //        System.err.println(startString);
