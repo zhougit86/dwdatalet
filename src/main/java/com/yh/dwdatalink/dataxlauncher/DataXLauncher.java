@@ -1,7 +1,9 @@
 package com.yh.dwdatalink.dataxlauncher;
 
+import com.alibaba.fastjson.JSON;
 import com.yh.dwdatalink.configuration.util.ConfigUtil;
 import com.yh.dwdatalink.configuration.util.FileUtil;
+import com.yh.dwdatalink.configuration.util.JobStatus;
 import com.yh.dwdatalink.configuration.util.ZKlient;
 import com.yh.dwdatalink.service.ProcessService;
 import com.yh.dwdatalink.service.Suicider;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
 import java.util.Map;
+
+import static com.yh.dwdatalink.configuration.util.JobStatus.*;
 
 /**
  * Created by zhou1 on 2019/3/5.
@@ -58,13 +62,13 @@ public class DataXLauncher implements ApplicationRunner {
 
 
         Map<String, String> envVar = System.getenv();
-        final String currentJobName = envVar.get(jobNameConst);
-        final String currentJobGroup = envVar.get(jobGroupConst);
+        suicider.currentJobName = envVar.get(jobNameConst);
+        suicider.currentJobGroup = envVar.get(jobGroupConst);
         final String currentRegistUrl = envVar.get(registryUrlConst);
         logger.info("get variable from system,the job name:{}, to ip:{}",
-                currentJobName,currentRegistUrl);
-        if(currentJobName ==null || currentRegistUrl==null
-                || currentJobGroup ==null){
+                suicider.currentJobName,currentRegistUrl);
+        if(suicider.currentJobName ==null || currentRegistUrl==null
+                || suicider.currentJobGroup ==null){
             System.exit(1);
         }
 
@@ -79,10 +83,15 @@ public class DataXLauncher implements ApplicationRunner {
         }
 
         if (suicider.client == null){
-            suicider.suicide(1);
+            suicider.suicide(1,jobStatusError);
         }
-        String conf =  suicider.client.getNode(currentJobGroup,currentJobName);
+        String conf =  suicider.client.getNode(suicider.currentJobGroup,suicider.currentJobName);
+
         logger.info("get job config from zk:\n {}",conf);
+
+        suicider.client.setNodeStatus(suicider.currentJobGroup
+                ,suicider.currentJobName
+                ,new JobStatus(jobStatusReady,localIp));
 
 
 //        CloseableHttpClient client = HttpClients.createDefault();
@@ -145,6 +154,10 @@ public class DataXLauncher implements ApplicationRunner {
         errGobbler.start();
         outputGobbler.start();
 
+        suicider.client.setNodeStatus(suicider.currentJobGroup
+                ,suicider.currentJobName
+                ,new JobStatus(jobStatusRunning,localIp));
+
 
         int exitVal = p.waitFor();
         while (errGobbler.isAlive() && outputGobbler.isAlive()){
@@ -152,7 +165,7 @@ public class DataXLauncher implements ApplicationRunner {
         }
 
 
-        suicider.suicide(1);
+        suicider.suicide(1,exitVal==0?jobStatusFinish:jobStatusError);
     }
 
 }
