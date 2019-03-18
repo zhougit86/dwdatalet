@@ -17,6 +17,9 @@ public class Suicider {
     public static String currentJobName;
     public static String currentJobGroup;
 
+    public static String podIp;
+    public static String podName;
+
 
     public void suicide(long seconds, String cause){
         Thread suicideThread = new SuicideThread(seconds,cause);

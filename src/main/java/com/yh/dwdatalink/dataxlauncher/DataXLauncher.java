@@ -5,6 +5,9 @@ import com.yh.dwdatalink.configuration.util.ConfigUtil;
 import com.yh.dwdatalink.configuration.util.FileUtil;
 import com.yh.dwdatalink.configuration.util.JobStatus;
 import com.yh.dwdatalink.configuration.util.ZKlient;
+import com.yh.dwdatalink.domain.RunningServer;
+import com.yh.dwdatalink.domain.RunningServerWithBLOBs;
+import com.yh.dwdatalink.mapper.RunningServerMapper;
 import com.yh.dwdatalink.service.ProcessService;
 import com.yh.dwdatalink.service.Suicider;
 import com.yh.dwdatalink.util.LocalStreamGobbler;
@@ -21,6 +24,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
+import java.util.Calendar;
 import java.util.Map;
 
 import static com.yh.dwdatalink.configuration.util.JobStatus.*;
@@ -46,6 +50,8 @@ public class DataXLauncher implements ApplicationRunner {
     ProcessService procSvc;
     @Autowired
     Suicider suicider;
+    @Autowired
+    RunningServerMapper runningServerMapper;
 
     @Override
     public void run(ApplicationArguments applicationArguments) throws Exception {
@@ -61,16 +67,29 @@ public class DataXLauncher implements ApplicationRunner {
         logger.info("my ip is {}",localIp);
 
 
+
+
         Map<String, String> envVar = System.getenv();
         suicider.currentJobName = envVar.get(jobNameConst);
         suicider.currentJobGroup = envVar.get(jobGroupConst);
         final String currentRegistUrl = envVar.get(registryUrlConst);
+
+        suicider.podIp = envVar.get("POD_IP");
+        suicider.podName = envVar.get("POD_NAME");
         logger.info("get variable from system,the job name:{}, to ip:{}",
                 suicider.currentJobName,currentRegistUrl);
         if(suicider.currentJobName ==null || currentRegistUrl==null
                 || suicider.currentJobGroup ==null){
             System.exit(1);
         }
+
+        RunningServerWithBLOBs rs = new RunningServerWithBLOBs();
+        rs.setTaskCode(suicider.currentJobName);
+        rs.setServiceIp(suicider.podIp);
+        rs.setServiceInfo(suicider.podName);
+        rs.setRunState(jobStatusRunning);
+        rs.setRunBegin(Calendar.getInstance().getTime());
+        runningServerMapper.insertSelective(rs);
 
         int retryTimes = 0;
         while(suicider.client == null && retryTimes<5){

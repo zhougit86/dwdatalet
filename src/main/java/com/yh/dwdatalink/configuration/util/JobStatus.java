@@ -1,5 +1,8 @@
 package com.yh.dwdatalink.configuration.util;
 
+
+import com.alibaba.fastjson.JSONObject;
+
 /**
  * Created by zhou1 on 2019/3/15.
  */
@@ -13,6 +16,8 @@ public class JobStatus {
 
     public String jobPhase;
     public String podIp;
+
+    public JobStatus(){}
 
     public JobStatus(String phase, String ip){
         this.jobPhase = phase;
@@ -33,5 +38,9 @@ public class JobStatus {
 
     public void setPodIp(String podIp) {
         this.podIp = podIp;
+    }
+
+    public String toString(){
+        return JSONObject.toJSONString(this);
     }
 }
