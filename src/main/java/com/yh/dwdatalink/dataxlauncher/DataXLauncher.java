@@ -89,7 +89,7 @@ public class DataXLauncher implements ApplicationRunner {
         rs.setServicePod(suicider.podName);
         rs.setRunState(jobStatusReady);
         rs.setRunBegin(Calendar.getInstance().getTime());
-        rs.appendServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into ready state"));
+//        rs.setServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into ready state"));
 
         runningServerMapper.insertSelective(rs);
         suicider.podState = rs;
@@ -181,7 +181,7 @@ public class DataXLauncher implements ApplicationRunner {
                 ,new JobStatus(jobStatusRunning,localIp));
 
         rs.setRunState(jobStatusRunning);
-        rs.appendServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into running state"));
+//        rs.appendServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into running state"));
         runningServerMapper.updateByPrimaryKeySelective(rs);
 
         int exitVal = p.waitFor();

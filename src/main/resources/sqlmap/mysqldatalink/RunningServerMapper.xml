@@ -59,7 +59,7 @@
       #{sysOper,jdbcType=VARCHAR}, #{serviceInfo,jdbcType=LONGVARCHAR}, #{runInfo,jdbcType=LONGVARCHAR}
       )
   </insert>
-  <insert id="insertSelective" parameterType="com.yh.dwdatalink.domain.RunningServerWithBLOBs" >
+  <insert id="insertSelective" useGeneratedKeys="true" keyProperty="id" parameterType="com.yh.dwdatalink.domain.RunningServerWithBLOBs" >
     insert into data_link_service_node_run
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -153,7 +153,7 @@
       </if>
       <if test="isDeleted != null" >
         0,
-      </if>ty
+      </if>
       <if test="owner != null" >
         #{owner,jdbcType=VARCHAR},
       </if>

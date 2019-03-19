@@ -59,7 +59,7 @@ public class Suicider {
             try{
                 podState.setRunState(exitCause);
                 podState.setRunEnd(Calendar.getInstance().getTime());
-                podState.appendServiceInfo(String.format("%s--%s", Calendar.getInstance().getTime(),"ended"));
+//                podState.appendServiceInfo(String.format("%s--%s", Calendar.getInstance().getTime(),"ended"));
 
                 runningServerMapper.updateByPrimaryKeySelective(podState);
                 client.setNodeStatus(currentJobGroup
