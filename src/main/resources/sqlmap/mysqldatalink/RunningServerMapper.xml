@@ -43,7 +43,7 @@
      is_deleted = 1
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.yh.dwdatalink.domain.RunningServerWithBLOBs" >
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.yh.dwdatalink.domain.RunningServerWithBLOBs" >
     insert into data_link_service_node_run (id, task_code, service_ip, 
       service_pod, run_begin, run_end, 
       run_state, service_desc, run_log, 
@@ -153,7 +153,7 @@
       </if>
       <if test="isDeleted != null" >
         0,
-      </if>
+      </if>ty
       <if test="owner != null" >
         #{owner,jdbcType=VARCHAR},
       </if>
