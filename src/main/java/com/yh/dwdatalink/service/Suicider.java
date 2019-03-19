@@ -3,9 +3,14 @@ package com.yh.dwdatalink.service;
 import com.yh.dwdatalink.DwdataletApplication;
 import com.yh.dwdatalink.configuration.util.JobStatus;
 import com.yh.dwdatalink.configuration.util.ZKlient;
+import com.yh.dwdatalink.domain.RunningServerWithBLOBs;
+import com.yh.dwdatalink.mapper.RunningServerMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Calendar;
 
 import static com.yh.dwdatalink.configuration.util.JobStatus.jobStatusRunning;
 
@@ -19,7 +24,10 @@ public class Suicider {
 
     public static String podIp;
     public static String podName;
+    public static RunningServerWithBLOBs podState;
 
+    @Autowired
+    RunningServerMapper runningServerMapper;
 
     public void suicide(long seconds, String cause){
         Thread suicideThread = new SuicideThread(seconds,cause);
@@ -31,6 +39,7 @@ public class Suicider {
         private final Logger logger = LoggerFactory.getLogger(SuicideThread.class);
         private long secondsToDie;
         private String exitCause;
+
 
         protected SuicideThread(long seconds, String cause){
             this.secondsToDie = seconds;
@@ -48,6 +57,11 @@ public class Suicider {
                         ex.getMessage());
             }
             try{
+                podState.setRunState(exitCause);
+                podState.setRunEnd(Calendar.getInstance().getTime());
+                podState.appendServiceInfo(String.format("%s--%s", Calendar.getInstance().getTime(),"ended"));
+
+                runningServerMapper.updateByPrimaryKeySelective(podState);
                 client.setNodeStatus(currentJobGroup
                         ,currentJobName
                         ,new JobStatus(exitCause,"null"));

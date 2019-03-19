@@ -9,6 +9,8 @@ public class RunningServer {
 
     private String serviceIp;
 
+    private String servicePod;
+
     private Date runBegin;
 
     private Date runEnd;
@@ -55,6 +57,14 @@ public class RunningServer {
 
     public void setServiceIp(String serviceIp) {
         this.serviceIp = serviceIp == null ? null : serviceIp.trim();
+    }
+
+    public String getServicePod() {
+        return servicePod;
+    }
+
+    public void setServicePod(String servicePod) {
+        this.servicePod = servicePod == null ? null : servicePod.trim();
     }
 
     public Date getRunBegin() {

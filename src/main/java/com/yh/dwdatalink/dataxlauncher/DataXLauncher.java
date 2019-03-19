@@ -86,10 +86,13 @@ public class DataXLauncher implements ApplicationRunner {
         RunningServerWithBLOBs rs = new RunningServerWithBLOBs();
         rs.setTaskCode(suicider.currentJobName);
         rs.setServiceIp(suicider.podIp);
-        rs.setServiceInfo(suicider.podName);
-        rs.setRunState(jobStatusRunning);
+        rs.setServicePod(suicider.podName);
+        rs.setRunState(jobStatusReady);
         rs.setRunBegin(Calendar.getInstance().getTime());
+        rs.appendServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into ready state"));
+
         runningServerMapper.insertSelective(rs);
+        suicider.podState = rs;
 
         int retryTimes = 0;
         while(suicider.client == null && retryTimes<5){
@@ -177,6 +180,9 @@ public class DataXLauncher implements ApplicationRunner {
                 ,suicider.currentJobName
                 ,new JobStatus(jobStatusRunning,localIp));
 
+        rs.setRunState(jobStatusRunning);
+        rs.appendServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into running state"));
+        runningServerMapper.updateByPrimaryKeySelective(rs);
 
         int exitVal = p.waitFor();
         while (errGobbler.isAlive() && outputGobbler.isAlive()){

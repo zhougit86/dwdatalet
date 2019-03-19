@@ -5,6 +5,7 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="task_code" property="taskCode" jdbcType="VARCHAR" />
     <result column="service_ip" property="serviceIp" jdbcType="VARCHAR" />
+    <result column="service_pod" property="servicePod" jdbcType="VARCHAR" />
     <result column="run_begin" property="runBegin" jdbcType="TIMESTAMP" />
     <result column="run_end" property="runEnd" jdbcType="TIMESTAMP" />
     <result column="run_state" property="runState" jdbcType="VARCHAR" />
@@ -23,8 +24,8 @@
     <result column="run_info" property="runInfo" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Base_Column_List" >
-    id, task_code, service_ip, run_begin, run_end, run_state, service_desc, run_log, 
-    is_used, env, is_deleted, owner, sys_create, sys_update, sys_oper
+    id, task_code, service_ip, service_pod, run_begin, run_end, run_state, service_desc, 
+    run_log, is_used, env, is_deleted, owner, sys_create, sys_update, sys_oper
   </sql>
   <sql id="Blob_Column_List" >
     service_info, run_info
@@ -44,17 +45,19 @@
   </delete>
   <insert id="insert" parameterType="com.yh.dwdatalink.domain.RunningServerWithBLOBs" >
     insert into data_link_service_node_run (id, task_code, service_ip, 
-      run_begin, run_end, run_state, 
-      service_desc, run_log, is_used, 
-      env, is_deleted, owner, 
-      sys_create, sys_update, sys_oper, 
-      service_info, run_info)
+      service_pod, run_begin, run_end, 
+      run_state, service_desc, run_log, 
+      is_used, env, is_deleted, 
+      owner, sys_create, sys_update, 
+      sys_oper, service_info, run_info
+      )
     values (#{id,jdbcType=BIGINT}, #{taskCode,jdbcType=VARCHAR}, #{serviceIp,jdbcType=VARCHAR}, 
-      #{runBegin,jdbcType=TIMESTAMP}, #{runEnd,jdbcType=TIMESTAMP}, #{runState,jdbcType=VARCHAR}, 
-      #{serviceDesc,jdbcType=VARCHAR}, #{runLog,jdbcType=VARCHAR}, #{isUsed,jdbcType=INTEGER}, 
-      #{env,jdbcType=VARCHAR}, 0, #{owner,jdbcType=VARCHAR},
-      #{sysCreate,jdbcType=TIMESTAMP}, #{sysUpdate,jdbcType=TIMESTAMP}, #{sysOper,jdbcType=VARCHAR}, 
-      #{serviceInfo,jdbcType=LONGVARCHAR}, #{runInfo,jdbcType=LONGVARCHAR})
+      #{servicePod,jdbcType=VARCHAR}, #{runBegin,jdbcType=TIMESTAMP}, #{runEnd,jdbcType=TIMESTAMP}, 
+      #{runState,jdbcType=VARCHAR}, #{serviceDesc,jdbcType=VARCHAR}, #{runLog,jdbcType=VARCHAR}, 
+      #{isUsed,jdbcType=INTEGER}, #{env,jdbcType=VARCHAR}, 0,
+      #{owner,jdbcType=VARCHAR}, #{sysCreate,jdbcType=TIMESTAMP}, #{sysUpdate,jdbcType=TIMESTAMP}, 
+      #{sysOper,jdbcType=VARCHAR}, #{serviceInfo,jdbcType=LONGVARCHAR}, #{runInfo,jdbcType=LONGVARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.yh.dwdatalink.domain.RunningServerWithBLOBs" >
     insert into data_link_service_node_run
@@ -67,6 +70,9 @@
       </if>
       <if test="serviceIp != null" >
         service_ip,
+      </if>
+      <if test="servicePod != null" >
+        service_pod,
       </if>
       <if test="runBegin != null" >
         run_begin,
@@ -121,6 +127,9 @@
       <if test="serviceIp != null" >
         #{serviceIp,jdbcType=VARCHAR},
       </if>
+      <if test="servicePod != null" >
+        #{servicePod,jdbcType=VARCHAR},
+      </if>
       <if test="runBegin != null" >
         #{runBegin,jdbcType=TIMESTAMP},
       </if>
@@ -174,6 +183,9 @@
       <if test="serviceIp != null" >
         service_ip = #{serviceIp,jdbcType=VARCHAR},
       </if>
+      <if test="servicePod != null" >
+        service_pod = #{servicePod,jdbcType=VARCHAR},
+      </if>
       <if test="runBegin != null" >
         run_begin = #{runBegin,jdbcType=TIMESTAMP},
       </if>
@@ -196,7 +208,7 @@
         env = #{env,jdbcType=VARCHAR},
       </if>
       <if test="isDeleted != null" >
-        is_deleted = #{isDeleted,jdbcType=INTEGER},
+        is_deleted = 0,
       </if>
       <if test="owner != null" >
         owner = #{owner,jdbcType=VARCHAR},
@@ -223,6 +235,7 @@
     update data_link_service_node_run
     set task_code = #{taskCode,jdbcType=VARCHAR},
       service_ip = #{serviceIp,jdbcType=VARCHAR},
+      service_pod = #{servicePod,jdbcType=VARCHAR},
       run_begin = #{runBegin,jdbcType=TIMESTAMP},
       run_end = #{runEnd,jdbcType=TIMESTAMP},
       run_state = #{runState,jdbcType=VARCHAR},
@@ -243,6 +256,7 @@
     update data_link_service_node_run
     set task_code = #{taskCode,jdbcType=VARCHAR},
       service_ip = #{serviceIp,jdbcType=VARCHAR},
+      service_pod = #{servicePod,jdbcType=VARCHAR},
       run_begin = #{runBegin,jdbcType=TIMESTAMP},
       run_end = #{runEnd,jdbcType=TIMESTAMP},
       run_state = #{runState,jdbcType=VARCHAR},

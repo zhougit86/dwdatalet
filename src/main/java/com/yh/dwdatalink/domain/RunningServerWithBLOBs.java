@@ -13,6 +13,15 @@ public class RunningServerWithBLOBs extends RunningServer {
         this.serviceInfo = serviceInfo == null ? null : serviceInfo.trim();
     }
 
+    public void appendServiceInfo(String newLine){
+        final String originalString = this.getServiceInfo();
+        StringBuilder sb = new StringBuilder();
+        sb.append(originalString);
+        sb.append("\n");
+        sb.append(newLine);
+        this.setServiceInfo(sb.toString());
+    }
+
     public String getRunInfo() {
         return runInfo;
     }
