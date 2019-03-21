@@ -123,9 +123,9 @@ public class DataXLauncher implements ApplicationRunner {
             return;
         }
 
-        suicider.client.setNodeStatus(suicider.currentJobGroup
-                ,suicider.currentJobName
-                ,new JobStatus(jobStatusReady,suicider.podIp));
+//        suicider.client.setNodeStatus(suicider.currentJobGroup
+//                ,suicider.currentJobName
+//                ,new JobStatus(jobStatusReady,suicider.podIp));
 
 
 
@@ -191,6 +191,7 @@ public class DataXLauncher implements ApplicationRunner {
         while (errGobbler.isAlive() && outputGobbler.isAlive()){
             Thread.sleep(1*1000L);
         }
+        logger.info("process {} exited with code {}",p,exitVal);
 
 
         suicider.suicide(1,exitVal==0?jobStatusFinish:jobStatusError);

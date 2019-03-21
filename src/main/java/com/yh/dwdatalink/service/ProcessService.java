@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.yh.dwdatalink.configuration.util.JobStatus.jobStatusFinish;
+import static com.yh.dwdatalink.configuration.util.JobStatus.jobStatusKilled;
 
 /**
  * Created by zhou1 on 2019/3/5.
@@ -25,8 +26,8 @@ public class ProcessService {
     public void killProc() throws Exception{
         if (this.proc != null && this.proc.isAlive()){
             Suicider.isKilled = true;
-            this.proc.destroy();
-//            suicider.suicide(1,jobStatusKilled);
+            this.proc.destroyForcibly();
+            suicider.suicide(1,jobStatusKilled);
             return;
         }
         throw new Exception("no proc running now");
