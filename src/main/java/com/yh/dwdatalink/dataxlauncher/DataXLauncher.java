@@ -184,7 +184,7 @@ public class DataXLauncher implements ApplicationRunner {
                 ,new JobStatus(jobStatusRunning,suicider.podIp));
 
         rs.setRunState(jobStatusRunning);
-//        rs.appendServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into running state"));
+        rs.appendServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into running state"));
         runningServerMapper.updateByPrimaryKeySelective(rs);
 
         int exitVal = p.waitFor();

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
 
+import static com.yh.dwdatalink.configuration.util.JobStatus.jobStatusKilled;
 import static com.yh.dwdatalink.configuration.util.JobStatus.jobStatusRunning;
 
 @Component
@@ -26,12 +27,19 @@ public class Suicider {
     public static String podName;
     public static RunningServerWithBLOBs podState;
 
+    public static boolean isKilled = false;
+    public static boolean isTerminating = false;
+
     @Autowired
     RunningServerMapper runningServerMapper;
 
     public void suicide(long seconds, String cause){
-        Thread suicideThread = new SuicideThread(seconds,cause);
-        suicideThread.start();
+        if (!isTerminating){
+            isTerminating = true;
+            Thread suicideThread = new SuicideThread(seconds,cause);
+            suicideThread.start();
+        }
+
     }
 
     class SuicideThread extends Thread{
@@ -43,6 +51,9 @@ public class Suicider {
         protected SuicideThread(long seconds, String cause){
             this.secondsToDie = seconds;
             this.exitCause = cause;
+            if (Suicider.isKilled){
+                this.exitCause = jobStatusKilled;
+            }
         }
 
         @Override
@@ -58,7 +69,7 @@ public class Suicider {
             try{
                 podState.setRunState(exitCause);
                 podState.setRunEnd(Calendar.getInstance().getTime());
-//                podState.appendServiceInfo(String.format("%s--%s", Calendar.getInstance().getTime(),"ended"));
+                podState.appendServiceInfo(String.format("%s--%s", Calendar.getInstance().getTime(),"ended"));
 
                 runningServerMapper.updateByPrimaryKeySelective(podState);
                 client.setNodeStatus(currentJobGroup
