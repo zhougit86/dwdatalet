@@ -62,12 +62,9 @@ public class DataXLauncher implements ApplicationRunner {
 //        String theJobDescJson = "{\"job\":{\"setting\":{\"speed\":{\"byte\":10485760},\"errorLimit\":{\"record\":0,\"percentage\":0.02}},\"content\":[{\"reader\":{\"name\":\"streamreader\",\"parameter\":{\"column\":[{\"value\":\"DataX\",\"type\":\"string\"},{\"value\":19990604,\"type\":\"long\"},{\"value\":\"1989-06-05 00:00:00\",\"type\":\"date\"},{\"value\":true,\"type\":\"bool\"},{\"value\":\"test\",\"type\":\"bytes\"}],\"sliceRecordCount\":100000}},\"writer\":{\"name\":\"streamwriter\",\"parameter\":{\"print\":false,\"encoding\":\"UTF-8\"}}}]}}";
 //        System.err.println(theJobDescJson);
 
-        InetAddress address = InetAddress.getLocalHost();
-        String localIp = address.getHostAddress();
-        logger.info("my ip is {}",localIp);
-
-
-
+//        InetAddress address = InetAddress.getLocalHost();
+//        String localIp = address.getHostAddress();
+//        logger.info("my ip is {}",localIp);
 
         Map<String, String> envVar = System.getenv();
         suicider.currentJobName = envVar.get(jobNameConst);
@@ -80,7 +77,8 @@ public class DataXLauncher implements ApplicationRunner {
                 suicider.currentJobName,currentRegistUrl);
         if(suicider.currentJobName ==null || currentRegistUrl==null
                 || suicider.currentJobGroup ==null){
-            System.exit(1);
+            suicider.suicide(1,jobStatusError);
+            return;
         }
 
         RunningServerWithBLOBs rs = new RunningServerWithBLOBs();
@@ -89,9 +87,17 @@ public class DataXLauncher implements ApplicationRunner {
         rs.setServicePod(suicider.podName);
         rs.setRunState(jobStatusReady);
         rs.setRunBegin(Calendar.getInstance().getTime());
-//        rs.setServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into ready state"));
+        rs.setIsDeleted(0);
+        rs.setServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime()
+                ,"enter into ready state"));
 
-        runningServerMapper.insertSelective(rs);
+        try{
+            runningServerMapper.insertSelective(rs);
+        }catch (Exception e){
+            suicider.suicide(1,jobStatusError);
+            return;
+        }
+
         suicider.podState = rs;
 
         int retryTimes = 0;
@@ -106,26 +112,22 @@ public class DataXLauncher implements ApplicationRunner {
 
         if (suicider.client == null){
             suicider.suicide(1,jobStatusError);
+            return;
         }
         String conf =  suicider.client.getNode(suicider.currentJobGroup,suicider.currentJobName);
 
         logger.info("get job config from zk:\n {}",conf);
 
+        if (conf==null || conf.length() ==0){
+            suicider.suicide(1,jobStatusError);
+            return;
+        }
+
         suicider.client.setNodeStatus(suicider.currentJobGroup
                 ,suicider.currentJobName
-                ,new JobStatus(jobStatusReady,localIp));
+                ,new JobStatus(jobStatusReady,suicider.podIp));
 
 
-//        CloseableHttpClient client = HttpClients.createDefault();
-//        final String compelteUrl = currentRegistUrl + currentJobName;
-//        HttpPost request = new HttpPost(compelteUrl);
-//
-//        CloseableHttpResponse response =null;
-
-//        response = client.execute(request);
-
-//        String conf =  ConfigUtil.getJobContent("http://127.0.0.1:8085/config/oxox");
-//        String conf =  ConfigUtil.getJobContent(registryUrlConst + jobConfigFileName);
 
         String jobPath = String.format("%s/job/", dataxPath);
         jobPath+=jobConfigFileName;
@@ -133,7 +135,8 @@ public class DataXLauncher implements ApplicationRunner {
         try{
             FileUtil.writeFile(jobPath,conf);
         }catch (Exception e){
-            e.printStackTrace();
+            suicider.suicide(1,jobStatusError);
+            return;
         }
 
 
@@ -178,7 +181,7 @@ public class DataXLauncher implements ApplicationRunner {
 
         suicider.client.setNodeStatus(suicider.currentJobGroup
                 ,suicider.currentJobName
-                ,new JobStatus(jobStatusRunning,localIp));
+                ,new JobStatus(jobStatusRunning,suicider.podIp));
 
         rs.setRunState(jobStatusRunning);
 //        rs.appendServiceInfo(String.format("%s--%s",Calendar.getInstance().getTime(),"enter into running state"));

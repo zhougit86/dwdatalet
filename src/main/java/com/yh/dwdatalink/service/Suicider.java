@@ -32,7 +32,6 @@ public class Suicider {
     public void suicide(long seconds, String cause){
         Thread suicideThread = new SuicideThread(seconds,cause);
         suicideThread.start();
-
     }
 
     class SuicideThread extends Thread{
