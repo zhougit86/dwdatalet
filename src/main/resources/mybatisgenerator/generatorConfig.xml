@@ -5,15 +5,15 @@
 
 <generatorConfiguration>
         <classPathEntry
-                location="C:\mavenRepo\mysql\mysql-connector-java\5.1.6\mysql-connector-java-5.1.6.jar"/>
+                location="C:\Users\Administrator\.m2\repository\mysql\mysql-connector-java\5.1.6\mysql-connector-java-5.1.6.jar"/>
         <context id="mySql" targetRuntime="MyBatis3">
         <commentGenerator>
             <property name="suppressAllComments" value="true"/>
         </commentGenerator>
 
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
-                        connectionURL="jdbc:mysql://10.252.3.129:3306/datalink" userId="datalinkdev"
-                        password="yywn@1314"/>
+                        connectionURL="jdbc:mysql://10.0.0.20:3306/sakila" userId="root"
+                        password="861110"/>
 
         <javaModelGenerator targetPackage="com.yh.dwdatalink.domain"
                             targetProject="src/main/java/">
@@ -31,7 +31,7 @@
             <property name="enableSubPackages" value="false"/>
         </javaClientGenerator>
 
-        <table tableName="data_link_service_node_run" domainObjectName="RunningServer"
+        <table tableName="rental" domainObjectName="Rental"
                enableCountByExample="false" enableUpdateByExample="false"
                enableDeleteByExample="false" enableSelectByExample="false"
                selectByExampleQueryId="true" >

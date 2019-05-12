@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.dwdatalink.mapper.RentalMapper" >
+  <resultMap id="BaseResultMap" type="com.yh.dwdatalink.domain.Rental" >
+    <id column="rental_id" property="rentalId" jdbcType="INTEGER" />
+    <result column="rental_date" property="rentalDate" jdbcType="TIMESTAMP" />
+    <result column="inventory_id" property="inventoryId" jdbcType="INTEGER" />
+    <result column="customer_id" property="customerId" jdbcType="SMALLINT" />
+    <result column="return_date" property="returnDate" jdbcType="TIMESTAMP" />
+    <result column="staff_id" property="staffId" jdbcType="TINYINT" />
+    <result column="last_update" property="lastUpdate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    rental_id, rental_date, inventory_id, customer_id, return_date, staff_id, last_update
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from rental
+    where rental_id = #{rentalId,jdbcType=INTEGER}
+  </select>
+  <select id="selectRLock" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select
+    <include refid="Base_Column_List" />
+    from rental
+    where customer_id = #{custId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from rental
+    where rental_id = #{rentalId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yh.dwdatalink.domain.Rental" >
+    insert into rental (rental_id, rental_date, inventory_id, 
+      customer_id, return_date, staff_id, 
+      last_update)
+    values (#{rentalId,jdbcType=INTEGER}, #{rentalDate,jdbcType=TIMESTAMP}, #{inventoryId,jdbcType=INTEGER}, 
+      #{customerId,jdbcType=SMALLINT}, #{returnDate,jdbcType=TIMESTAMP}, #{staffId,jdbcType=TINYINT}, 
+      #{lastUpdate,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yh.dwdatalink.domain.Rental" >
+    insert into rental
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="rentalId != null" >
+        rental_id,
+      </if>
+      <if test="rentalDate != null" >
+        rental_date,
+      </if>
+      <if test="inventoryId != null" >
+        inventory_id,
+      </if>
+      <if test="customerId != null" >
+        customer_id,
+      </if>
+      <if test="returnDate != null" >
+        return_date,
+      </if>
+      <if test="staffId != null" >
+        staff_id,
+      </if>
+      <if test="lastUpdate != null" >
+        last_update,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="rentalId != null" >
+        #{rentalId,jdbcType=INTEGER},
+      </if>
+      <if test="rentalDate != null" >
+        #{rentalDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="inventoryId != null" >
+        #{inventoryId,jdbcType=INTEGER},
+      </if>
+      <if test="customerId != null" >
+        #{customerId,jdbcType=SMALLINT},
+      </if>
+      <if test="returnDate != null" >
+        #{returnDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="staffId != null" >
+        #{staffId,jdbcType=TINYINT},
+      </if>
+      <if test="lastUpdate != null" >
+        #{lastUpdate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yh.dwdatalink.domain.Rental" >
+    update rental
+    <set >
+      <if test="rentalDate != null" >
+        rental_date = #{rentalDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="inventoryId != null" >
+        inventory_id = #{inventoryId,jdbcType=INTEGER},
+      </if>
+      <if test="customerId != null" >
+        customer_id = #{customerId,jdbcType=SMALLINT},
+      </if>
+      <if test="returnDate != null" >
+        return_date = #{returnDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="staffId != null" >
+        staff_id = #{staffId,jdbcType=TINYINT},
+      </if>
+      <if test="lastUpdate != null" >
+        last_update = #{lastUpdate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where rental_id = #{rentalId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yh.dwdatalink.domain.Rental" >
+    update rental
+    set rental_date = #{rentalDate,jdbcType=TIMESTAMP},
+      inventory_id = #{inventoryId,jdbcType=INTEGER},
+      customer_id = #{customerId,jdbcType=SMALLINT},
+      return_date = #{returnDate,jdbcType=TIMESTAMP},
+      staff_id = #{staffId,jdbcType=TINYINT},
+      last_update = #{lastUpdate,jdbcType=TIMESTAMP}
+    where rental_id = #{rentalId,jdbcType=INTEGER}
+  </update>
+</mapper>
